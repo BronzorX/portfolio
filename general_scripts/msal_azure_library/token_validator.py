@@ -2,7 +2,7 @@ import logging
 import re
 import types
 from abc import abstractmethod
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Union
 
 import msal
 
@@ -27,7 +27,7 @@ class DelegatedValidator(TokenValidator):
                  client_secret: str,
                  scope: List[str],
                  authority: str,
-                 ) -> Dict[str, str]:
+                 ) -> Dict[str, Union[str, int]]:
 
         """
         Validates user credentials and retrieves an access token from the tenant.
@@ -56,7 +56,6 @@ class DelegatedValidator(TokenValidator):
 
         result = {}
 
-        # Firstly, check the cache to see if this end user has signed in before
         accounts = app.get_accounts(username=username)
         if accounts:
             logging.info("Account(s) exists in cache, probably with token too. Let's try.")
@@ -64,8 +63,6 @@ class DelegatedValidator(TokenValidator):
 
         if not result:
             logging.info("No suitable token exists in cache. Let's get a new one from AAD.")
-            # See this page for constraints of Username Password Flow.
-            # https://github.com/AzureAD/microsoft-authentication-library-for-python/wiki/Username-Password-Authentication
             result = app.acquire_token_by_username_password(
                 username=username, password=password, scopes=scope)
         if result.get("error"):
@@ -75,17 +72,33 @@ class DelegatedValidator(TokenValidator):
 
 
 class ApplicationValidator(TokenValidator):
+    """
+    A class for validating tokens using the Client Credentials Flow (Application Flow) with MSAL.
+    This class provides methods to acquire an access token from a tenant using the client credentials of the application.
 
+    """
     def __call__(self,
                  client_id: str,
                  tenant_id: str,
                  client_secret: str,
                  scope: List[str],
                  authority: str
-                 ) -> Any:
+                 ) ->  Dict[str, Union[str, int]]:
         """
-        Get the access token using the Client Credentials Flow (Application Flow).
-        :return: A JSON object containing token information.
+        Retrieves an access token from the tenant using the Client Credentials Flow.
+
+        Args:
+            client_id (str): The client ID of the application.
+            tenant_id (str): The tenant ID of the Azure AD.
+            client_secret (str): The client secret of the application.
+            scope (List[str]): The list of scopes for the access token.
+            authority (str): The authority URL for the authentication.
+
+        Returns:
+            Any: A JSON object containing token information.
+
+        Raises:
+            Exception: If an error occurs during the token acquisition process.
         """
 
         app = msal.ConfidentialClientApplication(
@@ -101,5 +114,3 @@ class ApplicationValidator(TokenValidator):
             raise types.new_class(name=result.get("error"), bases=(Exception,))(description)
 
         return result
-
-
