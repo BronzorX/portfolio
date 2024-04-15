@@ -4,7 +4,27 @@ import types
 from abc import abstractmethod
 from typing import Any, List, Dict, Union
 
+import jwt
 import msal
+
+
+def decode_token(jwt_token: str) -> Dict:
+    """
+    Decode a JWT token to extract the payload.
+    This function decodes a given JWT token using a specified secret to retrieve the payload.
+
+    Args:
+        jwt_token (str): The JWT token to decode.
+    Returns:
+        Dict: A dictionary containing the decoded payload of the JWT token.
+    """
+
+    token_header = jwt.get_unverified_header(jwt_token)
+    payload_token = jwt.decode(jwt_token,
+                               "secret",
+                               algorithms=[token_header.get("alg")],
+                               options={"verify_signature": False})
+    return payload_token
 
 
 class TokenValidator:
@@ -19,6 +39,7 @@ class DelegatedValidator(TokenValidator):
     A class for acquiring tokens using Microsoft Authentication Library (MSAL).
     This class provides method to acquire an access token from delegated applications.
     """
+
     def __call__(self,
                  username: str,
                  password: str,
@@ -77,13 +98,14 @@ class ApplicationValidator(TokenValidator):
     This class provides methods to acquire an access token from a tenant using the client credentials of the application.
 
     """
+
     def __call__(self,
                  client_id: str,
                  tenant_id: str,
                  client_secret: str,
                  scope: List[str],
                  authority: str
-                 ) ->  Dict[str, Union[str, int]]:
+                 ) -> Dict[str, Union[str, int]]:
         """
         Retrieves an access token from the tenant using the Client Credentials Flow.
 
