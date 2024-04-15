@@ -9,6 +9,9 @@ This library has the scope to interact with the new authentication provided by m
     * Application Validator: Get the access token using the Client Credentials Flow (Application Flow)
     * Delegaded Validator: Validates user credentials and retrieves an access token from the tenant via Client Application method.
 
+  * Request handler:
+    * Class that allows you to handle requests and response with some configurations
+
 * Tests executed:
   * Application Validator
   * Delegaded Validator
