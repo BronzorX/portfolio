@@ -4,5 +4,3 @@
 
   * general_scripts
     * msal_azure_library
-  
-  * scraper_telegram_bot
