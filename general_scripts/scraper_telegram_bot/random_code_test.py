@@ -2,7 +2,7 @@ import asyncio
 
 import telegram
 
-token = "7092248027:AAH4YLZOgTBXr8fAivD128i56E9pxi1zz8M"
+token = ""
 
 
 async def get_bot():
